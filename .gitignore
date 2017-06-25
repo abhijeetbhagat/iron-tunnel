@@ -38,3 +38,9 @@
 *~
 
 build/
+
+# Files associated with CMake
+CMakeCache.txt
+CMakeFiles
+Makefile
+cmake_install.cmake
