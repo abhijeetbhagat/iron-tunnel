@@ -36,3 +36,5 @@
 
 # Emacs save-files
 *~
+
+build/
