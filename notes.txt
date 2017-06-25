@@ -1,0 +1,11 @@
+look for a symbol in an elf so:
+$ readelf -Ws <so file> | grep -i <symbol name>
+
+look for dependencies of an elf file:
+$ ldd <elf file>
+
+disassemble an elf:
+$ objdump <elf file>
+
+check location of an installed package:
+$ sudo dpkg -L <package name>
