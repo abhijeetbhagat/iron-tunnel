@@ -9,3 +9,7 @@ $ objdump <elf file>
 
 check location of an installed package:
 $ sudo dpkg -L <package name>
+
+https://stackoverflow.com/questions/1635942/linking-3rd-party-libraries
+
+https://www.selectiveintellect.net/blog/2016/7/29/using-cmake-to-add-third-party-libraries-to-your-project-1
