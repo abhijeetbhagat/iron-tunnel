@@ -1,6 +1,6 @@
 #include "libsshpp.hpp"
 
-int _main () {
+int main () {
   ssh_bind bind_obj = ssh_bind_new ();
   ssh_bind_options_set (bind_obj, SSH_BIND_OPTIONS_HOSTKEY, "~/.ssh/id_rsa");
   ssh_bind_options_set (bind_obj, SSH_BIND_OPTIONS_BINDADDR, "localhost");
