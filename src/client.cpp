@@ -6,7 +6,7 @@ int main () {
   session.setOption (SSH_OPTIONS_HOST, "localhost");
   int port = 22;
   session.setOption (SSH_OPTIONS_PORT, &port);
-  session.setOption (SSH_OPTIONS_USER, "abhi");
+  session.setOption (SSH_OPTIONS_USER, "swap");
   try {
     session.connect ();
   } catch (ssh::SshException & e) {
@@ -22,10 +22,10 @@ int main () {
   //this is a mandatory step to check the authenticity of the server
   switch (session.isServerKnown ()) {
     case SSH_SERVER_KNOWN_OK:
-      std::cout << "known server\n";
+      std::cout << "known server"<<endl;
       break;
     default:
-      std::cout << "unknown server\n"; 
+      std::cout << "unknown server"<<endl; 
       return -1;
   }
 
