@@ -2,6 +2,8 @@
 #include <iostream>
 using namespace std;
 
+int authenticate(ssh_session session);
+
 int main () {
   if (ssh_init () != 0) {
     std::cout << "Error initing ssh"<<std::endl;
@@ -12,7 +14,7 @@ int main () {
     std::cout << "Error creating a bind object"<<std::endl;
     return -1;
   }
-  int port = 22;
+  int port = 25;
   if (ssh_bind_options_set (bind_obj, SSH_BIND_OPTIONS_BINDADDR, "localhost") < 0) {
     std::cout << "Can't use localhost"<<std::endl;
     return -1; 
@@ -35,6 +37,33 @@ int main () {
   }
   std::cout << "All set!"<<std::endl;
   ssh_session session_obj = ssh_new ();
-  ssh_bind_accept (bind_obj, session_obj);
+  int r = ssh_bind_accept (bind_obj, session_obj);
+  if(r == SSH_ERROR)
+    std::cout << "error accepting connection" << std::endl;
+  std::cout << "Connection accepted successfully" << std::endl;
+
+  if (ssh_handle_key_exchange(session_obj)) {
+    std::cout << "ssh_handle_key_exchange : " << ssh_get_error(session_obj);
+    return 1;
+  }
+  return 0;
+}
+
+
+int authenticate(ssh_session session){
+  ssh_message msg;
+  do{
+    msg = ssh_message_get(session);
+    if(!msg)
+      break;
+    switch(ssh_message_type(msg)){
+      case SSH_REQUEST_AUTH:
+        switch(ssh_message_subtype(msg)){
+          case SSH_AUTH_METHOD_PUBLICKEY:
+            //TODO : need to get key and compare
+            break;
+        }
+    }
+  }while(1);
   return 0;
 }
