@@ -1,5 +1,6 @@
 #include "libsshpp.hpp"
 #include <iostream>
+using namespace std;
 
 int main () {
   ssh::Session session;
@@ -22,10 +23,10 @@ int main () {
   //this is a mandatory step to check the authenticity of the server
   switch (session.isServerKnown ()) {
     case SSH_SERVER_KNOWN_OK:
-      std::cout << "known server"<<endl;
+      std::cout << "known server"<<std::endl;
       break;
     default:
-      std::cout << "unknown server"<<endl; 
+      std::cout << "unknown server"<<std::endl; 
       return -1;
   }
 
