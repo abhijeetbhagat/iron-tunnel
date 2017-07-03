@@ -1,8 +1,17 @@
 #include "libsshpp.hpp"
 #include <iostream>
+#include <string.h>
 using namespace std;
 
 int authenticate(ssh_session session);
+
+static int auth_password(const char *user, const char *password){
+  if(strcmp(user,"swap"))
+    return 0;
+  if(strcmp(password,"root"))
+    return 0;
+  return 1; // authenticated
+}
 
 int main () {
   if (ssh_init () != 0) {
@@ -24,18 +33,16 @@ int main () {
     return -1; 
   }
 
-  if (ssh_bind_options_set (bind_obj, SSH_BIND_OPTIONS_RSAKEY, "/etc/ssh/ssh_host_rsa_key") < 0 ||
-      ssh_bind_options_set (bind_obj, SSH_BIND_OPTIONS_DSAKEY, "/etc/ssh/ssh_host_dsa_key") < 0) {
+  if (ssh_bind_options_set(bind_obj, SSH_BIND_OPTIONS_ECDSAKEY, "/etc/ssh/ssh_host_ecdsa_key") < 0 || ssh_bind_options_set (bind_obj, SSH_BIND_OPTIONS_RSAKEY, "/etc/ssh/ssh_host_rsa_key") < 0 || ssh_bind_options_set (bind_obj, SSH_BIND_OPTIONS_DSAKEY, "/etc/ssh/ssh_host_dsa_key") < 0 ) {
     std::cout << "Something wrong with the keys"<<std::endl;
     return -1;
   }
   int bindRes = ssh_bind_listen (bind_obj);
-  std::cout<< "bindresult : "<<bindRes;
   if (ssh_bind_listen (bind_obj) < 0) {
     std::cout << "Error listening"<<std::endl;
     return -1;
   }
-  std::cout << "All set!"<<std::endl;
+  std::cout << "All set!" << std::endl;
   ssh_session session_obj = ssh_new ();
   int r = ssh_bind_accept (bind_obj, session_obj);
   if(r == SSH_ERROR)
@@ -46,24 +53,60 @@ int main () {
     std::cout << "ssh_handle_key_exchange : " << ssh_get_error(session_obj);
     return 1;
   }
+
+  int auth = 0;
+
+
+  ssh_message msg;
+  do{
+    msg = ssh_message_get(session_obj);
+    //if(!msg)
+     // break;
+    std::cout << "auth message : "<<msg << std::endl;
+    switch(ssh_message_type(msg)){
+      case SSH_REQUEST_AUTH:
+        std::cout << "inside SSH_REQUEST_AUTH " << std::endl;
+        switch(ssh_message_subtype(msg)){
+          case SSH_AUTH_METHOD_PUBLICKEY:
+            //TODO : need to get key and compare
+            std::cout << "Authenticate using public key" << std::endl;
+            break;
+          case SSH_AUTH_METHOD_PASSWORD:
+            std::cout <<  "inside SSH_AUTH_METHOD_PASSWORD " << std::endl;
+            std::cout << "User " << ssh_message_auth_user(msg) << " wants to auth with pass " << ssh_message_auth_password(msg) << std::endl;
+            if(auth_password(ssh_message_auth_user(msg), ssh_message_auth_password(msg))){
+              auth=1;
+              ssh_message_auth_reply_success(msg,0);
+            }
+            break;
+          case SSH_AUTH_METHOD_NONE:
+            std::cout << "inside auth method node" << std::endl;
+          default:
+            ssh_message_auth_set_methods(msg,SSH_AUTH_METHOD_PASSWORD);
+            ssh_message_reply_default(msg);
+            break;
+        }
+        break;
+      default:
+        ssh_message_reply_default(msg); 
+        break;
+    }
+    ssh_message_free(msg);
+  }while(!auth);
+
+
+
+  /* proceed to authentication */
+  /*auth = authenticate(session_obj);
+    if(!auth){
+    printf("Authentication error: %s\n", ssh_get_error(session_obj));
+    ssh_disconnect(session_obj);
+    return 1;
+    }*/
   return 0;
 }
 
 
 int authenticate(ssh_session session){
-  ssh_message msg;
-  do{
-    msg = ssh_message_get(session);
-    if(!msg)
-      break;
-    switch(ssh_message_type(msg)){
-      case SSH_REQUEST_AUTH:
-        switch(ssh_message_subtype(msg)){
-          case SSH_AUTH_METHOD_PUBLICKEY:
-            //TODO : need to get key and compare
-            break;
-        }
-    }
-  }while(1);
   return 0;
 }

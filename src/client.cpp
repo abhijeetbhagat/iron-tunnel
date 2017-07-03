@@ -46,12 +46,17 @@ int main () {
       } 
   }
   int authRes;
-  try{
+  /*try{
     authRes = session.userauthPublickeyAuto();
   }catch(ssh::SshException e){ 
     std::cout << "error connection localhost "<< e.getError() << std::endl; 
     return -1;
   }
+
+  */
+  //authRes = session.userauthNone();
+  authRes = session.userauthPassword("root");
+  std::cout << "user auth none "<<authRes;
 
   switch(authRes){
     case SSH_AUTH_SUCCESS:
@@ -62,6 +67,9 @@ int main () {
       break;
     case SSH_AUTH_DENIED :
       std::cout << "Authentication denied "<< std::endl; 
+      break;
+    default:
+      std::cout << "Unknown authentication message" << std::endl;
   }
   return 0;
 }
