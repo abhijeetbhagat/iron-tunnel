@@ -33,15 +33,19 @@ int main () {
     return -1; 
   }
 
-  if (ssh_bind_options_set(bind_obj, SSH_BIND_OPTIONS_ECDSAKEY, "/etc/ssh/ssh_host_ecdsa_key") < 0 || ssh_bind_options_set (bind_obj, SSH_BIND_OPTIONS_RSAKEY, "/etc/ssh/ssh_host_rsa_key") < 0 || ssh_bind_options_set (bind_obj, SSH_BIND_OPTIONS_DSAKEY, "/etc/ssh/ssh_host_dsa_key") < 0 ) {
+  if (ssh_bind_options_set(bind_obj, SSH_BIND_OPTIONS_ECDSAKEY, "/etc/ssh/ssh_host_ecdsa_key") < 0 ||
+      ssh_bind_options_set (bind_obj, SSH_BIND_OPTIONS_RSAKEY, "/etc/ssh/ssh_host_rsa_key") < 0 ||
+      ssh_bind_options_set (bind_obj, SSH_BIND_OPTIONS_DSAKEY, "/etc/ssh/ssh_host_dsa_key") < 0 ) {
     std::cout << "Something wrong with the keys"<<std::endl;
     return -1;
   }
+
   int bindRes = ssh_bind_listen (bind_obj);
   if (ssh_bind_listen (bind_obj) < 0) {
     std::cout << "Error listening"<<std::endl;
     return -1;
   }
+
   std::cout << "All set!" << std::endl;
   ssh_session session_obj = ssh_new ();
   int r = ssh_bind_accept (bind_obj, session_obj);
