@@ -1,6 +1,7 @@
 #include "libsshpp.hpp"
 #include <iostream>
 #include <string.h>
+#include "CmdLine.h"
 using namespace std;
 
 int authenticate(ssh_session session);
@@ -13,24 +14,50 @@ static int auth_password(const char *user, const char *password){
   return 1; // authenticated
 }
 
-int main () {
+int main (int argc, char** argv) {
+  // Exit if initialization of global cryptographic data structures fails
   if (ssh_init () != 0) {
     std::cout << "Error initing ssh"<<std::endl;
     return -1;
   }
+
+  // Exit if creation of new SSH server bind fails
   ssh_bind bind_obj = ssh_bind_new ();
   if (bind_obj == NULL) {
     std::cout << "Error creating a bind object"<<std::endl;
     return -1;
   }
-  int port = 25;
+  
+  // Exit if setting options for server bind fails
   if (ssh_bind_options_set (bind_obj, SSH_BIND_OPTIONS_BINDADDR, "localhost") < 0) {
     std::cout << "Can't use localhost"<<std::endl;
     return -1; 
   }
-  if (ssh_bind_options_set (bind_obj, SSH_BIND_OPTIONS_BINDPORT, (void*)&port) < 0) {
-    std::cout << "Can't use the specified port"<<std::endl;
-    return -1; 
+
+  int port;
+  try {
+    // Define the command line object
+    TCLAP::CmdLine cmd("Iron-Tunnel Server(SFTP Implementation)", ' ', "0.1");
+
+    // Define value arg(s)
+    TCLAP::ValueArg<int> portArg("p","port","Port to run server on.",true,-1,"int"); // -1 represents invalid port
+
+    // Add the arg(s) to CmdLine object
+    cmd.add( portArg );
+
+    // Parse the argv array
+    cmd.parse( argc, argv );
+
+    // Get the value parsed by each arg(s)
+    port = portArg.getValue();
+
+    // Do what you intend
+    if (ssh_bind_options_set (bind_obj, SSH_BIND_OPTIONS_BINDPORT, (void*)&port) < 0) {
+      std::cout << "Can't use the specified port"<<std::endl;
+      return -1; 
+    }
+  } catch (TCLAP::ArgException &e) {
+    std::cerr << "error: " << e.error() << "for arg " << e.argId() << std::endl;
   }
 
   if (ssh_bind_options_set(bind_obj, SSH_BIND_OPTIONS_ECDSAKEY, "/etc/ssh/ssh_host_ecdsa_key") < 0 ||
@@ -59,8 +86,6 @@ int main () {
   }
 
   int auth = 0;
-
-
   ssh_message msg;
   do{
     msg = ssh_message_get(session_obj);
@@ -98,8 +123,6 @@ int main () {
     ssh_message_free(msg);
   }while(!auth);
 
-
-
   /* proceed to authentication */
   /*auth = authenticate(session_obj);
     if(!auth){
@@ -109,7 +132,6 @@ int main () {
     }*/
   return 0;
 }
-
 
 int authenticate(ssh_session session){
   return 0;
