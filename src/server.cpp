@@ -34,14 +34,16 @@ int main () {
   }
 
   if (ssh_bind_options_set (bind_obj, SSH_BIND_OPTIONS_RSAKEY, "/root/.ssh/id_rsa") < 0) {
-    std::cout << "Something wrong with the keys"<<std::endl;
+   std::cout << "Something wrong with the keys"<<std::endl;
     return -1;
   }
+
   int bindRes = ssh_bind_listen (bind_obj);
   if (ssh_bind_listen (bind_obj) < 0) {
     std::cout << "Error listening"<<std::endl;
     return -1;
   }
+
   std::cout << "All set!" << std::endl;
   ssh_session session_obj = ssh_new ();
   int r = ssh_bind_accept (bind_obj, session_obj);
