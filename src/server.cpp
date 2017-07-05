@@ -23,7 +23,7 @@ int main () {
     std::cout << "Error creating a bind object"<<std::endl;
     return -1;
   }
-  int port = 25;
+  int port = 1333;
   if (ssh_bind_options_set (bind_obj, SSH_BIND_OPTIONS_BINDADDR, "localhost") < 0) {
     std::cout << "Can't use localhost"<<std::endl;
     return -1; 
@@ -33,7 +33,7 @@ int main () {
     return -1; 
   }
 
-  if (ssh_bind_options_set(bind_obj, SSH_BIND_OPTIONS_ECDSAKEY, "/etc/ssh/ssh_host_ecdsa_key") < 0 || ssh_bind_options_set (bind_obj, SSH_BIND_OPTIONS_RSAKEY, "/etc/ssh/ssh_host_rsa_key") < 0 || ssh_bind_options_set (bind_obj, SSH_BIND_OPTIONS_DSAKEY, "/etc/ssh/ssh_host_dsa_key") < 0 ) {
+  if (ssh_bind_options_set (bind_obj, SSH_BIND_OPTIONS_RSAKEY, "/root/.ssh/id_rsa") < 0) {
     std::cout << "Something wrong with the keys"<<std::endl;
     return -1;
   }
@@ -60,9 +60,8 @@ int main () {
   ssh_message msg;
   do{
     msg = ssh_message_get(session_obj);
-    //if(!msg)
-     // break;
-    std::cout << "auth message : "<<msg << std::endl;
+    if(!msg)
+      break;
     switch(ssh_message_type(msg)){
       case SSH_REQUEST_AUTH:
         std::cout << "inside SSH_REQUEST_AUTH " << std::endl;
@@ -70,6 +69,11 @@ int main () {
           case SSH_AUTH_METHOD_PUBLICKEY:
             //TODO : need to get key and compare
             std::cout << "Authenticate using public key" << std::endl;
+            if(ssh_message_auth_pubkey(msg)){
+              std::cout << "successfully authenticated" << std::endl;
+              auth =1;
+              ssh_message_auth_reply_success(msg,0);
+            }
             break;
           case SSH_AUTH_METHOD_PASSWORD:
             std::cout <<  "inside SSH_AUTH_METHOD_PASSWORD " << std::endl;
@@ -95,18 +99,9 @@ int main () {
   }while(!auth);
 
 
+  //#TODO : Check for channel open request and spwan channel and read commands
 
-  /* proceed to authentication */
-  /*auth = authenticate(session_obj);
-    if(!auth){
-    printf("Authentication error: %s\n", ssh_get_error(session_obj));
-    ssh_disconnect(session_obj);
-    return 1;
-    }*/
   return 0;
 }
 
 
-int authenticate(ssh_session session){
-  return 0;
-}

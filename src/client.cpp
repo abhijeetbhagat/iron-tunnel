@@ -4,7 +4,7 @@
 int main () {
   ssh::Session session;
   session.setOption (SSH_OPTIONS_HOST, "localhost");
-  int port = 25;
+  int port = 1333;
   session.setOption (SSH_OPTIONS_PORT, &port);
   session.setOption (SSH_OPTIONS_USER, "swap");
 
@@ -46,17 +46,46 @@ int main () {
       } 
   }
   int authRes;
-  /*try{
+  try{
     authRes = session.userauthPublickeyAuto();
   }catch(ssh::SshException e){ 
     std::cout << "error connection localhost "<< e.getError() << std::endl; 
     return -1;
   }
 
-  */
-  //authRes = session.userauthNone();
-  authRes = session.userauthPassword("root");
-  std::cout << "user auth none "<<authRes;
+  
+
+  /*int method = session.getAuthList();
+
+  if (method & SSH_AUTH_METHOD_NONE)
+  { // For the source code of function authenticate_none(),
+    // refer to the corresponding example
+    //rc = authenticate_none(session);
+    //if (rc == SSH_AUTH_SUCCESS) return rc;
+    std::cout << "user auth none" << std::endl;
+  }
+  if (method & SSH_AUTH_METHOD_PUBLICKEY)
+  { // For the source code of function authenticate_pubkey(),
+    // refer to the corresponding example
+   // rc = authenticate_pubkey(session);
+    //if (rc == SSH_AUTH_SUCCESS) return rc;
+    std::cout << "user auth pub" << std::endl;
+  }
+  if (method & SSH_AUTH_METHOD_INTERACTIVE)
+  { // For the source code of function authenticate_kbdint(),
+    // refer to the corresponding example
+    //rc = authenticate_kbdint(session);
+    //if (rc == SSH_AUTH_SUCCESS) return rc;
+    std::cout << "user auth inter" << std::endl;
+  }
+  if (method & SSH_AUTH_METHOD_PASSWORD)
+  { // For the source code of function authenticate_password(),
+    // refer to the corresponding example
+   // rc = authenticate_password(session);
+   // if (rc == SSH_AUTH_SUCCESS) return rc;
+    std::cout << "user auth pass" << std::endl;
+  } */
+
 
   switch(authRes){
     case SSH_AUTH_SUCCESS:
@@ -71,5 +100,7 @@ int main () {
     default:
       std::cout << "Unknown authentication message" << std::endl;
   }
+  
+  //#TODO : Request for channel and start executing commands
   return 0;
 }
