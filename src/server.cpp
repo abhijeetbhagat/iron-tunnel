@@ -1,5 +1,6 @@
 #include "libsshpp.hpp"
 #include <iostream>
+#include <stdio.h>
 #include <string.h>
 using namespace std;
 
@@ -14,6 +15,8 @@ static int auth_password(const char *user, const char *password){
 }
 
 int main () {
+
+  ssh_channel chan=0;
   if (ssh_init () != 0) {
     std::cout << "Error initing ssh"<<std::endl;
     return -1;
@@ -102,7 +105,71 @@ int main () {
 
 
   //#TODO : Check for channel open request and spwan channel and read commands
+  if(!auth){
+    std::cout << "auth error: " << ssh_get_error(session_obj) << std::endl;
+    ssh_disconnect(session_obj);
+    return 1;
+  }
 
+
+  //check for new channel request
+  do {
+    msg=ssh_message_get(session_obj);
+    if(msg){
+      switch(ssh_message_type(msg)){
+        case SSH_REQUEST_CHANNEL_OPEN:
+          if(ssh_message_subtype(msg)==SSH_CHANNEL_SESSION){
+            std::cout << "channel open request " << std::endl;
+            chan=ssh_message_channel_request_open_reply_accept(msg);
+            break;
+          }
+        default:
+          ssh_message_reply_default(msg);
+      }
+      ssh_message_free(msg);
+    }
+  } while(msg && !chan);
+  
+
+  if(!chan){
+    std::cout << "channel opening error : " << ssh_get_error(session_obj) << std::endl;
+    ssh_finalize();
+    return 1;
+  }
+
+  do {
+    msg=ssh_message_get(session_obj);
+    if(msg && ssh_message_type(msg)==SSH_REQUEST_CHANNEL &&
+        ssh_message_subtype(msg)==SSH_CHANNEL_REQUEST_SHELL){
+      std::cout << "channel request shell "<< std::endl;
+      ssh_message_channel_request_reply_success(msg);
+      break;
+    }else 
+      ssh_message_reply_default(msg);
+    ssh_message_free(msg);
+  } while (msg);
+  
+
+  std::cout << "it works !" << std::endl;
+  int i=0;
+  char buf[2048] = "";
+  do{
+    i=ssh_channel_read(chan,buf, 2048, 0);
+    if(i>0) {
+   /*   ssh_channel_write(chan, buf, i);
+      if (write(1,buf,i) < 0) {
+        std::cout << "error writing to buffer" << std::endl;
+        return 1;
+      }*/
+      buf[i] = '\0';
+      std::cout <<"command received from client : " << buf << std::endl;
+      memset(&buf,0,2048);
+    }
+  } while (i>0);
+
+  ssh_disconnect(session_obj);
+  ssh_bind_free(bind_obj);
+  ssh_finalize();
   return 0;
 }
 

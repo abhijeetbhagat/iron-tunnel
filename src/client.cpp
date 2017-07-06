@@ -1,5 +1,6 @@
 #include "libsshpp.hpp"
 #include <iostream>
+#include <string.h>
 
 int main () {
   ssh::Session session;
@@ -29,7 +30,6 @@ int main () {
       std::cout << "known server"<< std::endl;
       break;
     default:
-      std::cout << "unknown server"<< std::endl; 
       std::cout << "unknown server"<< std::endl << "Do you want to add to trusted server (y/n) : ";  
       char ch;
       std::cin >> ch;
@@ -47,7 +47,8 @@ int main () {
   }
   int authRes;
   try{
-    authRes = session.userauthPublickeyAuto();
+    //authRes = session.userauthPublickeyAuto();
+    authRes = session.userauthPassword("root");
   }catch(ssh::SshException e){ 
     std::cout << "error connection localhost "<< e.getError() << std::endl; 
     return -1;
@@ -86,7 +87,7 @@ int main () {
     std::cout << "user auth pass" << std::endl;
   } */
 
-
+  std::cout << "Auth Res : " << authRes << std::endl;
   switch(authRes){
     case SSH_AUTH_SUCCESS:
       std::cout << "Authentication successfull "<< std::endl;
@@ -102,5 +103,25 @@ int main () {
   }
   
   //#TODO : Request for channel and start executing commands
+  ssh::Channel ssh_channel(session);
+
+  try{
+    ssh_channel.openSession();
+    //ssh_channel.requestPty();
+    //ssh_channel.changePtySize(30,60);
+    ssh_channel.requestShell();
+  }catch(ssh::SshException e){
+    std::cout << "error connection localhost "<< e.getError() << std::endl; 
+    return 1;
+  }
+  char s[2048] = "";
+  std::cout << "Enter commands to be sent to server  " << std::endl;
+  while(ssh_channel.isOpen() && !ssh_channel.isEof()){
+    std::cin >> s;
+    ssh_channel.write(&s,strlen(s));
+    std::cout << "command  *" << s << " * , sent to server "<< std::endl;
+  }
+
+  std::cout << "opened channel and shell successfully " << std::endl;
   return 0;
 }
