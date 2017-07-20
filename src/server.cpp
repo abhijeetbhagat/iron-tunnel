@@ -36,7 +36,7 @@ int main () {
     return -1; 
   }
 
-  if (ssh_bind_options_set (bind_obj, SSH_BIND_OPTIONS_RSAKEY, "/root/.ssh/id_rsa") < 0) {
+  if (ssh_bind_options_set (bind_obj, SSH_BIND_OPTIONS_ECDSAKEY, "/root/.ssh/id_ecdsa") < 0) {
    std::cout << "Something wrong with the keys"<<std::endl;
     return -1;
   }
@@ -75,7 +75,7 @@ int main () {
             //TODO : need to get key and compare
             std::cout << "Authenticate using public key" << std::endl;
             if(ssh_message_auth_pubkey(msg)){
-              std::cout << "successfully authenticated" << std::endl;
+              std::cout << "successfully authenticated sending success reply" << std::endl;
               auth =1;
               ssh_message_auth_reply_success(msg,0);
             }

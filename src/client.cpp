@@ -8,13 +8,14 @@ int main () {
   int port = 1333;
   session.setOption (SSH_OPTIONS_PORT, &port);
   session.setOption (SSH_OPTIONS_USER, "swap");
+  session.setOption (SSH_OPTIONS_SSH_DIR, "~/.ssh/");
 
 
 
   try {
     session.connect ();
   } catch (ssh::SshException & e) {
-    std::cout << "Unable to connect to server " << e.getError() << std::endl;
+    std::cout << " ***** Unable to connect to server " << e.getError() << std::endl;
     return -1;
   }
 
@@ -37,7 +38,11 @@ int main () {
       switch(ch){
         case 'y':
         case 'Y':
-          session.writeKnownhost();
+          try{
+            session.writeKnownhost();
+          }catch(ssh::SshException &e){
+            std::cout << "Error in writing to known host : " << e.getError();
+          }
           break;
         case 'n':
         case 'N':
@@ -46,9 +51,24 @@ int main () {
       } 
   }
   int authRes;
+  ssh_key key;
   try{
     //authRes = session.userauthPublickeyAuto();
-    authRes = session.userauthPassword("root");
+    int rc = ssh_pki_import_pubkey_file("/root/.ssh/id_ecdsa.pub",&key);
+    std::cout << "import pub key res : " << rc << std::endl;
+    switch(rc){
+      case SSH_OK :
+        std::cout << "ssh ok" << std::endl;
+        break;
+      case SSH_EOF :
+        std::cout << "ssh eof " << std::endl;
+        break;
+      case SSH_ERROR :
+        std::cout << "ssh error " << std::endl;
+        break;
+    }
+    authRes = session.userauthTryPublickey(key);
+    //authRes = session.userauthPassword("root");
   }catch(ssh::SshException e){ 
     std::cout << "error connection localhost "<< e.getError() << std::endl; 
     return -1;
