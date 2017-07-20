@@ -53,7 +53,6 @@ int main () {
   int authRes;
   ssh_key key;
   try{
-    //authRes = session.userauthPublickeyAuto();
     int rc = ssh_pki_import_pubkey_file("/root/.ssh/id_ecdsa.pub",&key);
     std::cout << "import pub key res : " << rc << std::endl;
     switch(rc){
@@ -62,12 +61,13 @@ int main () {
         break;
       case SSH_EOF :
         std::cout << "ssh eof " << std::endl;
-        break;
+        return -1;
       case SSH_ERROR :
         std::cout << "ssh error " << std::endl;
-        break;
+        return -1;
     }
     authRes = session.userauthTryPublickey(key);
+    ssh_key_free(key);
     //authRes = session.userauthPassword("root");
   }catch(ssh::SshException e){ 
     std::cout << "error connection localhost "<< e.getError() << std::endl; 
